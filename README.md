@@ -1,4 +1,6 @@
 # APEM
+Single Page Application (SPA)
+
 Technologie: css, html, js, react, bootstrap
 
 Funkcjonalności:
@@ -12,7 +14,7 @@ Instrukcja dla windows:
   - npm -v
   - W repo na komputerze:
     - npm install
-    - npm start
     - npm install bootstrap
+    - npm start (http://localhost:3000)
 
 (improt bootstrap do plików js)
