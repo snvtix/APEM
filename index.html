@@ -1,13 +1,40 @@
-<!doctype html>
-<html lang="en">
+<!DOCTYPE html>
+<html lang="pl">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Vite + React</title>
+    <title>Edytor Zdjęć</title>
+    <link rel="stylesheet" href="App.css" />
   </head>
   <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
+    <div class="container">
+      <!-- Tytuł strony -->
+      <h1>Edytor zdjęć</h1>
+      
+      <!-- Okno do wyświetlania zdjęcia -->
+      <div class="photo-container">
+        <video id="camera" width="1280" height="720" autoplay></video> <!-- Kamera do robienia zdjęć -->
+      </div>
+      
+      <!-- Przycisk do robienia zdjęcia -->
+      <button id="capture-button">Zrób zdjęcie</button>
+
+      <!-- Suwaki do edycji zdjęcia -->
+      <div class="controls">
+        <label for="brightness">Jasność:</label>
+        <input type="range" id="brightness" min="-100" max="100" value="0" />
+        
+        <label for="contrast">Kontrast:</label>
+        <input type="range" id="contrast" min="-100" max="100" value="0" />
+        
+        <label for="saturation">Nasycenie:</label>
+        <input type="range" id="saturation" min="-100" max="100" value="0" />
+      </div>
+
+      <!-- Przycisk do zapisu zdjęcia -->
+      <button id="save-button">Zapisz zdjęcie</button>
+    </div>
+
+    <script src="app.js"></script>
   </body>
 </html>
