@@ -26,20 +26,27 @@
   flex-direction: column;
   padding: 1rem;
   align-items: center;
+  justify-content: center; /* Wyrównaj zawartość w pionie */
 }
 
-.video-container {
+.video-container,
+.captured-image-container {
   width: 100%;
   max-width: 640px;
+  height: 480px; /* Ustaw stałą wysokość kontenera */
   margin-bottom: 1rem;
   border: 2px solid #ddd;
   border-radius: 4px;
   overflow: hidden;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
-.camera-feed {
+.camera-feed,
+.captured-image {
   width: 100%;
-  display: block;
+  height: auto; /* Zadbaj, żeby obrazek wypełniał szerokość kontenera */
 }
 
 .camera-placeholder {
@@ -76,20 +83,6 @@
 
 .control-button:hover:not(:disabled), .reset-button:hover {
   background-color: #45a049; /* Darker green on hover */
-}
-
-.captured-image-container {
-  margin-top: 1rem;
-  text-align: center;
-}
-
-.captured-image {
-  width: 100%;
-  max-width: 640px; /* Matches camera feed max-width */
-  height: auto;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  margin-top: 0.5rem;
 }
 
 .side-panel {

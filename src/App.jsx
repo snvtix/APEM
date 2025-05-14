@@ -2,23 +2,24 @@ import React, { useState, useRef, useEffect } from 'react';
 import './App.css';
 
 const PhotoEditor = () => {
-  const [stream, setStream] = useState(null);
-  const [capturedImage, setCapturedImage] = useState(null);
-  
+  const [stream, setStream] = useState(null);               // Obiekt stream kamery
+  const [capturedImage, setCapturedImage] = useState(null); // Przechowuje zrobione zdjęcie (jako data URL)
+
+  // Domyślne ustawienia suwaków (filtrów CSS)
   const defaultSettings = {
-    brightness: 100,
-    contrast: 100,
-    saturation: 100,
-    sepia: 0,
+    brightness: 100, // Jasność (procentowo)
+    contrast: 100,   // Kontrast (procentowo)
+    saturation: 100, // Nasycenie (procentowo)
+    sepia: 0         // Efekt sepii (procentowo)
   };
-  
+
   const [imageSettings, setImageSettings] = useState(defaultSettings);
-  
+
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
   const editedImageRef = useRef(null);
 
-  // Start camera stream
+  // Uruchomienie kamery (stream)
   const startCamera = async () => {
     try {
       const mediaStream = await navigator.mediaDevices.getUserMedia({ video: true });
@@ -31,7 +32,7 @@ const PhotoEditor = () => {
     }
   };
 
-  // Stop camera stream
+  // Zatrzymanie streamu kamery
   const stopCamera = () => {
     if (stream) {
       stream.getTracks().forEach(track => track.stop());
@@ -39,25 +40,29 @@ const PhotoEditor = () => {
     }
   };
 
-  // Take photo from camera (now uses displayed dimensions)
+  // Robienie zdjęcia z kamery (kopiowanie obrazu z <video> do <canvas>)
   const takePhoto = () => {
     if (videoRef.current && canvasRef.current) {
       const video = videoRef.current;
       const displayWidth = video.clientWidth;
       const displayHeight = video.clientHeight;
-      
+
       canvasRef.current.width = displayWidth;
       canvasRef.current.height = displayHeight;
-      
+
       const context = canvasRef.current.getContext('2d');
       context.drawImage(video, 0, 0, displayWidth, displayHeight);
-      
+
+      // Konwersja canvas do PNG
       const imageDataUrl = canvasRef.current.toDataURL('image/png');
       setCapturedImage(imageDataUrl);
+
+      // Po zrobieniu zdjęcia, zatrzymaj kamerę (opcjonalne)
+      stopCamera();
     }
   };
 
-  // Save photo
+  // Zapis zdjęcia (tworzy link do pobrania)
   const savePhoto = () => {
     if (capturedImage) {
       const link = document.createElement('a');
@@ -69,7 +74,14 @@ const PhotoEditor = () => {
     }
   };
 
-  // Apply image filters based on settings
+  // Usunięcie zrobionego zdjęcia i ponowne uruchomienie kamery
+  const deletePhoto = () => {
+    setCapturedImage(null);
+    resetSettings(); // opcjonalnie resetuj ustawienia
+    startCamera();
+  };
+
+  // Aktualizacja filtrów CSS zdjęcia
   const applyFilters = () => {
     if (capturedImage && editedImageRef.current) {
       editedImageRef.current.style.filter = `
@@ -81,7 +93,7 @@ const PhotoEditor = () => {
     }
   };
 
-  // Update setting and apply filters
+  // Obsługa zmiany wartości suwaków
   const handleSettingChange = (setting, value) => {
     setImageSettings(prev => ({
       ...prev,
@@ -89,112 +101,128 @@ const PhotoEditor = () => {
     }));
   };
 
-  // Reset all settings to default
+  // Reset suwaków do wartości domyślnych
   const resetSettings = () => {
     setImageSettings(defaultSettings);
   };
 
-  // Apply filters when settings or image changes
+  // Zaaplikuj filtry gdy ustawienia się zmienią lub po zrobieniu zdjęcia
   useEffect(() => {
     applyFilters();
   }, [imageSettings, capturedImage]);
 
-  // Start camera on component mount
+  // Rozpocznij kamerę przy ładowaniu komponentu
   useEffect(() => {
     startCamera();
-    return () => stopCamera();
+    return () => stopCamera(); // posprzątaj przy odmontowaniu komponentu
   }, []);
+
+  // Po każdej zmianie streamu przypisz go do <video>
+  useEffect(() => {
+    if (videoRef.current && stream) {
+      videoRef.current.srcObject = stream;
+    }
+  }, [stream]);
 
   return (
     <div className="photo-editor-app">
       <header className="app-header">
         <h1>Photo Editor</h1>
       </header>
-      
+
       <div className="main-content">
         <div className="camera-section">
-          <div className="video-container">
-            {stream ? (
-              <video ref={videoRef} autoPlay playsInline className="camera-feed"></video>
-            ) : (
-              <div className="camera-placeholder">Camera not available</div>
+          {stream && !capturedImage ? (
+            <>
+              <h3>Camera:</h3>
+              <div className="video-container">
+                <video ref={videoRef} autoPlay playsInline className="camera-feed"></video>
+              </div>
+            </>
+          ) : capturedImage ? (
+            <>
+              <h3>Captured Image</h3>
+              <div className="captured-image-container">
+                <img
+                  ref={editedImageRef}
+                  src={capturedImage}
+                  alt="Captured"
+                  className="captured-image"
+                />
+              </div>
+            </>
+          ) : (
+            <div className="camera-placeholder">Camera not available</div>
+          )}
+
+          <div className="controls">
+            {!capturedImage && (
+              <button onClick={takePhoto} className="control-button">Take Photo</button>
+            )}
+            {capturedImage && (
+              <>
+                <button onClick={savePhoto} className="control-button">Save</button>
+                <button onClick={deletePhoto} className="control-button">Delete Photo</button>
+              </>
             )}
           </div>
-          
-          <div className="controls">
-            <button onClick={takePhoto} className="control-button">Take Photo</button>
-            <button onClick={savePhoto} className="control-button" disabled={!capturedImage}>Save</button>
-          </div>
-          
-          {capturedImage && (
-            <div className="captured-image-container">
-              <h3>Captured Photo:</h3>
-              <img 
-                ref={editedImageRef}
-                src={capturedImage} 
-                alt="Captured" 
-                className="captured-image"
-              />
-            </div>
-          )}
         </div>
-        
+
         <div className="side-panel">
           <h3>Image Adjustments</h3>
-          
+
+          {/* Suwaki działają przez modyfikację stylu CSS `filter` na <img> */}
           <div className="slider-control">
             <label>Brightness: {imageSettings.brightness}%</label>
-            <input 
-              type="range" 
-              min="0" 
-              max="200" 
+            <input
+              type="range"
+              min="0"
+              max="200"
               value={imageSettings.brightness}
               onChange={(e) => handleSettingChange('brightness', e.target.value)}
             />
           </div>
-          
+
           <div className="slider-control">
             <label>Contrast: {imageSettings.contrast}%</label>
-            <input 
-              type="range" 
-              min="0" 
-              max="200" 
+            <input
+              type="range"
+              min="0"
+              max="200"
               value={imageSettings.contrast}
               onChange={(e) => handleSettingChange('contrast', e.target.value)}
             />
           </div>
-          
+
           <div className="slider-control">
             <label>Saturation: {imageSettings.saturation}%</label>
-            <input 
-              type="range" 
-              min="0" 
-              max="200" 
+            <input
+              type="range"
+              min="0"
+              max="200"
               value={imageSettings.saturation}
               onChange={(e) => handleSettingChange('saturation', e.target.value)}
             />
           </div>
-          
+
           <div className="slider-control">
             <label>Sepia: {imageSettings.sepia}%</label>
-            <input 
-              type="range" 
-              min="0" 
-              max="100" 
+            <input
+              type="range"
+              min="0"
+              max="100"
               value={imageSettings.sepia}
               onChange={(e) => handleSettingChange('sepia', e.target.value)}
             />
           </div>
-          
-          <button 
-            onClick={resetSettings} 
-            className="reset-button"
-          >
+
+          <button onClick={resetSettings} className="reset-button">
             Reset Settings
           </button>
         </div>
       </div>
-      
+
+      {/* Ukryty canvas – tylko do robienia zdjęć */}
       <canvas ref={canvasRef} style={{ display: 'none' }}></canvas>
     </div>
   );
