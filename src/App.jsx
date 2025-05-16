@@ -51,26 +51,51 @@ const PhotoEditor = () => {
       canvasRef.current.height = displayHeight;
 
       const context = canvasRef.current.getContext('2d');
+      
+      context.translate(displayWidth, 0);
+      context.scale(-1, 1);
       context.drawImage(video, 0, 0, displayWidth, displayHeight);
+      
+      context.setTransform(1, 0, 0, 1, 0, 0);
 
-      // Konwersja canvas do PNG
       const imageDataUrl = canvasRef.current.toDataURL('image/png');
       setCapturedImage(imageDataUrl);
 
-      // Po zrobieniu zdjęcia, zatrzymaj kamerę (opcjonalne)
       stopCamera();
     }
   };
 
   // Zapis zdjęcia (tworzy link do pobrania)
   const savePhoto = () => {
-    if (capturedImage) {
-      const link = document.createElement('a');
-      link.href = capturedImage;
-      link.download = 'photo.png';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+    if (capturedImage && canvasRef.current) {
+      const img = new Image();
+      img.onload = () => {
+        
+        canvasRef.current.width = img.width;
+        canvasRef.current.height = img.height;
+        
+        const ctx = canvasRef.current.getContext('2d');
+        
+        
+        ctx.filter = `
+          brightness(${imageSettings.brightness}%)
+          contrast(${imageSettings.contrast}%)
+          saturate(${imageSettings.saturation}%)
+          sepia(${imageSettings.sepia}%)
+        `;
+        
+        ctx.drawImage(img, 0, 0);
+      
+        ctx.filter = 'none';
+        
+        const link = document.createElement('a');
+        link.href = canvasRef.current.toDataURL('image/png');
+        link.download = 'photo.png';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      };
+      img.src = capturedImage;
     }
   };
 

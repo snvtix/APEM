@@ -43,10 +43,18 @@
   align-items: center;
 }
 
-.camera-feed,
+.camera-feed {
+  width: 100%;
+  display: block;
+  transform: scaleX(-1); /* This flips the video horizontally */
+}
 .captured-image {
   width: 100%;
   height: auto; /* Zadbaj, żeby obrazek wypełniał szerokość kontenera */
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  margin-top: 0.5rem;
+  transform: none !important;
 }
 
 .camera-placeholder {
